@@ -1,1 +1,2 @@
-#!/usr/bin/env python3
+// Insert document into a collection
+db.school.insertOne({"name": "Holberton school"});
