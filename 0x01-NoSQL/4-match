@@ -1,1 +1,2 @@
-#!/usr/bin/env python3
+// List all documents in a collection that matches
+db.school.find({"name": "Holberton school"});
