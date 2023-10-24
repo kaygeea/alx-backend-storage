@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""""Create a function that inserts a new document into a collection"""
+"""Create a function that inserts a new document into a collection"""
 
 def insert_school(mongo_collection, **kwargs):
     """
