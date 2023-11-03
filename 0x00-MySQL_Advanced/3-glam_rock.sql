@@ -2,7 +2,7 @@
 -- Longevity is based on `split - formed`
 SELECT band_name, 
        CASE
-           WHEN split IS NULL THEN '2020'
+           WHEN split IS NULL THEN '2022'
            ELSE split
        END - formed AS lifespan
   FROM metal_bands
