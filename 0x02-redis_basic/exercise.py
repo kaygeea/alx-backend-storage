@@ -30,8 +30,8 @@ class Cache:
         This method creates a connection to the Redis server and flushes any
         exising data in the Redis database.
         """
-        self.__redis = redis.Redis()
-        self.__redis.flushdb()
+        self._redis = redis.Redis()
+        self._redis.flushdb()
 
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """
@@ -49,5 +49,5 @@ class Cache:
             str: The unique gen'd key to which the stored data is associated.
         """
         key = str(uuid.uuid4())  # Redis keys can ONLY be of type str
-        self.__redis.set(key, data)
+        self._redis.set(key, data)
         return key
