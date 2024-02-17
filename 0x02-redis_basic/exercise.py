@@ -6,7 +6,7 @@ from typing import Callable, T, Type, Union
 import uuid
 
 
-def count_calls(method: Callable[[bytes], T]) -> Callable[[T], T]:
+def count_calls(method: Callable) -> Callable:
     """
     Count number of calls to a method and store the count in Redis.
 
