@@ -2,7 +2,7 @@
 """Create a class for caching with Redis"""
 from functools import wraps
 import redis
-from typing import Callable, T, Type, Union
+from typing import Callable, Union
 import uuid
 
 
@@ -16,11 +16,30 @@ def count_calls(method: Callable) -> Callable:
     """
     @wraps(method)
     def wrapper_count_calls(self, *args, **kwargs):
-        """Wraps the method and increments the call count."""
+        """Wrap the method and increment the call count."""
         method_val = method(self, *args, **kwargs)
         self._redis.incr(method.__qualname__, 1)
         return method_val
     return wrapper_count_calls
+
+def call_history(method: Callable) -> Callable:
+    """
+    Store history of inputs and outputs for a particular function
+    """
+    @wraps(method)
+    def wrapper_call_history(self, *args, **kwargs):
+        """Wrap the method and store its input & output in respective lists"""
+        
+        # Create the respective keys for the I & O lists
+        input_key = method.__qualname__ + ":inputs"
+        output_key = method.__qualname__ + ":outputs"
+
+        # Create & append data into the lists
+        self._redis.rpush(input_key, str(args))
+        func_output = method(self, *args, **kwargs)  # Get function output
+        self._redis.rpush(output_key, func_output)
+        return func_output
+    return wrapper_call_history
 
 
 class Cache:
@@ -52,6 +71,7 @@ class Cache:
         self._redis.flushdb()
 
     @count_calls
+    @call_history
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """
         Store input data in the Redis cache and returns the associated key.
