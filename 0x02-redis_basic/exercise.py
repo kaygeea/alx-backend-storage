@@ -22,6 +22,7 @@ def count_calls(method: Callable) -> Callable:
         return method_val
     return wrapper_count_calls
 
+
 def call_history(method: Callable) -> Callable:
     """
     Store history of inputs and outputs for a particular function
@@ -29,7 +30,7 @@ def call_history(method: Callable) -> Callable:
     @wraps(method)
     def wrapper_call_history(self, *args, **kwargs):
         """Wrap the method and store its input & output in respective lists"""
-        
+
         # Create the respective keys for the I & O lists
         input_key = method.__qualname__ + ":inputs"
         output_key = method.__qualname__ + ":outputs"
@@ -40,6 +41,42 @@ def call_history(method: Callable) -> Callable:
         self._redis.rpush(output_key, func_output)
         return func_output
     return wrapper_call_history
+
+
+def replay(fn: Callable) -> None:
+    """
+    Display the call history of a method in the class.
+
+    This function retrieves and displays the call history, including input
+    arguments and output values, for a specified method of a Cache class.
+    The call history is stored in a Redis database.
+
+    Args:
+        fn (Callable): The method for which the call history will be displayed
+
+    Returns:
+        None: This function does not return any value.
+    """
+    if fn is None or not hasattr(fn, '__self__'):
+        return
+    redis_store = getattr(fn.__self__, '_redis', None)
+    if not isinstance(redis_store, redis.Redis):
+        return
+    method_name = fn.__qualname__
+    input_key = '{}:inputs'.format(method_name)
+    output_key = '{}:outputs'.format(method_name)
+    method_call_count = 0
+    if redis_store.exists(method_name) != 0:
+        method_call_count = int(redis_store.get(method_name))
+    print('{} was called {} times:'.format(method_name, method_call_count))
+    method_inputs = redis_store.lrange(input_key, 0, -1)
+    method_outputs = redis_store.lrange(output_key, 0, -1)
+    for method_input, method_output in zip(method_inputs, method_outputs):
+        print('{}(*{}) -> {}'.format(
+            method_name,
+            method_input.decode("utf-8"),
+            method_output.decode("utf-8"),
+        ))
 
 
 class Cache:
